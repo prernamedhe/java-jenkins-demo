@@ -2,17 +2,11 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.8.1' // Make sure this Maven version is configured in Jenkins Global Tools
-        jdk 'JDK 17'        // Also configure JDK in Jenkins Global Tools
+        maven 'Maven 3.8.1' // Must match the name configured in Jenkins Global Tools
+        jdk 'JDK 17'        // Must match the name configured in Jenkins Global Tools
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git url: 'file:C://GIT_Java17_Workspace//test'
-            }
-        }
-
         stage('Build') {
             steps {
                 sh 'mvn clean install'
@@ -35,6 +29,24 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: '**/target/*.war', fingerprint: true
             }
+        }
+
+        stage('Publish Test Results') {
+            steps {
+                junit '**/target/surefire-reports/*.xml'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Build and tests succeeded!'
+        }
+        failure {
+            echo '❌ Build failed. Please check the logs.'
+        }
+        always {
+            echo '📦 Pipeline execution completed.'
         }
     }
 }
